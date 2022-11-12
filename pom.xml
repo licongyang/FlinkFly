@@ -37,7 +37,18 @@
                 <version>4.6.1</version>
                 <executions>
                     <execution>
+                        <id>compile-scala</id>
+                        <phase>compile</phase>
                         <goals>
+                            <goal>add-source</goal>
+                            <goal>compile</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>test-compile-scala</id>
+                        <phase>test-compile</phase>
+                        <goals>
+                            <goal>add-source</goal>
                             <!-- 声明绑定到maven的compile阶段 -->
                             <goal>testCompile</goal>
                         </goals>
@@ -58,6 +69,10 @@
                 <executions>
                     <execution>
                         <id>make-assembly</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>single</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
