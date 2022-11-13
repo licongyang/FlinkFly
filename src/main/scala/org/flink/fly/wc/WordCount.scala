@@ -1,6 +1,6 @@
 package org.flink.fly.wc
 
-import org.apache.flink.api.scala.ExecutionEnvironment
+import org.apache.flink.api.scala._
 
 object WordCount {
   def main(args: Array[String]): Unit = {
