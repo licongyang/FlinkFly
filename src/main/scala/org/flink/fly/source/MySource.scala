@@ -9,7 +9,7 @@ import java.util.Properties
 // 温度传感器读数样例类
 case class SensorReading(id: String, timestamp: Long, temperature: Double)
 
-object SourceTest {
+object MySource {
   def main(args: Array[String]): Unit = {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
 
