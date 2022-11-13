@@ -32,6 +32,13 @@
             <artifactId>flink-connector-kafka-0.11_${scala.versions}</artifactId>
             <version>${flink.version}</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.apache.bahir</groupId>
+            <artifactId>flink-connector-redis_${scala.versions}</artifactId>
+            <version>1.0</version>
+        </dependency>
+
     </dependencies>
 
     <build>
