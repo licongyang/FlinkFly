@@ -1,5 +1,6 @@
 package org.flink.fly.transform
 
+import org.apache.flink.api.common.functions.{FilterFunction, RichMapFunction}
 import org.apache.flink.streaming.api.scala._
 import org.flink.fly.source.SensorReading
 
@@ -35,13 +36,13 @@ object MyTransform {
     // split->splitstream 根据某些特性（贴了标识）把一个datastream拆分两个或者多个datastream
     // 不用直接用聚合操作，需要用select分成多个流
     // 需求：传感器数据按照温度高低，拆分成两个流
-    val splitStream = dataStream.split( data => {
-      if(data.temperature > 30) Seq("high") else Seq("low")
+    val splitStream = dataStream.split(data => {
+      if (data.temperature > 30) Seq("high") else Seq("low")
     })
 
     val high = splitStream.select("high")
     val low = splitStream.select("low")
-    val all = splitStream.select("high","low")
+    val all = splitStream.select("high", "low")
 
     high.print("high")
     low.print("low")
@@ -50,7 +51,7 @@ object MyTransform {
     // connect-> connectedStream 同流不合污,整体一个流，但各管各的（两个流数据类型可以不一样，再之后的coMap再去调整一样的）
     // coMap\coflat , 同时对流中的各个部分应用map，合并一个流（操作也可以不一样）
     // 只能两个流合并，无法后面再跟connect
-    val warningStream =high.map(data => (data.id, data.temperature))
+    val warningStream = high.map(data => (data.id, data.temperature))
     val connectedStreams = warningStream.connect(low)
 
     val coMapDataStream = connectedStreams.map(
@@ -64,11 +65,29 @@ object MyTransform {
     val unionStream = high.union(low)
     unionStream.print("union stream")
 
+    // 函数类
+    dataStream.filter(new MyFilter()).print("custom function")
+    // 匿名函数
+    dataStream.filter(_.id.startsWith("sensor_1")).print("custom function")
+    // 富函数（函数类）
+    // 可以获取运行环境的上下文，并拥有一些生命周期方法
+    // RichMapFunction/
 
 
 
 
     env.execute("my transform")
   }
+  // 类可以传入参数，被实现方法引用
+  class MyFilter() extends FilterFunction[SensorReading]{
+    override def filter(value: SensorReading): Boolean = {
+      value.id.startsWith("sensor_1")
+    }
+  }
 
+  class MyMapper() extends RichMapFunction[SensorReading, String]{
+    override def map(in: SensorReading): String = {
+      "flink"
+    }
+  }
 }
