@@ -7,7 +7,17 @@ import org.flink.fly.source.SensorReading
 
 import java.util.Properties
 
-// 如何端到端状态一致性
+// 如何端到端状态一致性?
+
+/**
+ *  本地kafka
+ *  生产者
+ *  ./bin/kafka-console-producer.sh --topic senor --broker-list localhost:9092
+ *  生产者按照sensor.txt记录输入
+ *  消费者：
+ *  ./bin/kafka-console-consumer.sh --topic sinkTest --bootstrap-server localhost:9092
+ *
+ */
 object MyKafkaSink {
   def main(args: Array[String]): Unit = {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
