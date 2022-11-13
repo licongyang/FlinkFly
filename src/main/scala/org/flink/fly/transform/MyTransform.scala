@@ -50,7 +50,7 @@ object MyTransform {
     // connect-> connectedStream 同流不合污,整体一个流，但各管各的（两个流数据类型可以不一样，再之后的coMap再去调整一样的）
     // coMap\coflat , 同时对流中的各个部分应用map，合并一个流（操作也可以不一样）
     // 只能两个流合并，无法后面再跟connect
-    val warningStream =high.map((data => (data.id, data.temperature)))
+    val warningStream =high.map(data => (data.id, data.temperature))
     val connectedStreams = warningStream.connect(low)
 
     val coMapDataStream = connectedStreams.map(
@@ -61,7 +61,7 @@ object MyTransform {
 
     // union 可以对两个或者两个以上的DataStream(流数据类型要求一样)进行合并，形成一个新的DataStream
     // 顺序可能有变化
-    var unionStream = high.union(low)
+    val unionStream = high.union(low)
     unionStream.print("union stream")
 
 
