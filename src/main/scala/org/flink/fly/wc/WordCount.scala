@@ -1,8 +1,6 @@
-package org.flink.fly
+package org.flink.fly.wc
 
-import org.apache.flink.api.scala._
-
-// 批处理 word count 程序
+import org.apache.flink.api.scala.ExecutionEnvironment
 
 object WordCount {
   def main(args: Array[String]): Unit = {
@@ -17,7 +15,7 @@ object WordCount {
     val wordCountDataSet = inputDataSet.flatMap(_.split(" "))
       .map((_, 1))
       .groupBy(0)
-//      .groupBy(_._1) // Aggregate does not support grouping with KeySelector functions, yet.
+      //      .groupBy(_._1) // Aggregate does not support grouping with KeySelector functions, yet.
       .sum(1)
 
     wordCountDataSet.print()
