@@ -1,7 +1,7 @@
 package org.flink.fly.wc
 
 import org.apache.flink.api.java.utils.ParameterTool
-import org.apache.flink.streaming.api.scala.StreamExecutionEnvironment
+import org.apache.flink.streaming.api.scala._
 
 /**
  * nc -lk 7777
