@@ -5,6 +5,7 @@ import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrderness
 import org.apache.flink.streaming.api.functions.{AssignerWithPeriodicWatermarks, AssignerWithPunctuatedWatermarks}
 import org.apache.flink.streaming.api.scala._
 import org.apache.flink.streaming.api.watermark.Watermark
+import org.apache.flink.streaming.api.windowing.assigners.SlidingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.flink.fly.source.SensorReading
 /**
@@ -21,6 +22,7 @@ import org.flink.fly.source.SensorReading
  * 这是会触发窗口计算，来的201，触发200(因为延迟1s)的窗口(窗口大小为10，左闭右开[190,200））计算，会把199计算在内
  * 因为在datastream上面分配的时间戳和水位线，在keyby之前；
  * 这里并行度为1， 只有一个任务，keyby按照key分到多个分区；不同id的数据的时间戳也会影响任务的水位线，并向后广播传递水位线
+
  */
 /**
  * 输出结果：
@@ -71,6 +73,12 @@ import org.flink.fly.source.SensorReading
  * input data> SensorReading(sensor_1,154771820,34.0)
  * input data> SensorReading(sensor_1,1547718201,33.0)
  * min temp> (sensor_1,35.80018327300259)
+ *
+ * 为什么201会开始触发喃？
+ * 计算开窗的开始位置： timestamp - (timestamp - offset + windowSize) % windowSize;
+ * 其中offset 默认为0（格林尼治），指定时间时区，如果是东八区，跟标准统一，需要-8小时
+ * 201 - (201 -0 + 10 ) % 10 = 200 =》 [200 , 210]
+ * 199 - (199 -0 + 10) % 10 = 190 => [190,200)
  *
  * 因为滑动窗口大小为15s,滑动大小为5s，延迟1s
  * 推断下一次来时间戳为206，水位线的205（206-1），触发窗口[190,205) ，窗口大小为15s，每滑动5s触发一次
@@ -131,6 +139,8 @@ object MyWindow {
       // 滑动窗口
       // 统计15s内的最小温度，每5s输出一次
       .timeWindow(Time.seconds(15), Time.seconds(5))
+      // 第三个参数设置时区
+//      .window(SlidingEventTimeWindows.of(Time.seconds(15),Time.seconds(5),Time.hours(-8)))
       .reduce((data1, data2) => (data1._1, data1._2.min(data2._2))) // 用reduce做增量聚合
 
     minTempPerWindowStream.print("min temp")
