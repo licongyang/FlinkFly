@@ -13,6 +13,8 @@
         <maven.compiler.target>8</maven.compiler.target>
         <flink.version>1.7.2</flink.version>
         <scala.versions>2.11</scala.versions>
+        <flink.cdc.version>2.2.1</flink.cdc.version>
+        <mysql.version>8.0.27</mysql.version>
     </properties>
 
     <dependencies>
@@ -48,7 +50,15 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.20</version>
+            <version>${mysql.version}</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>com.ververica</groupId>
+            <artifactId>flink-connector-mysql-cdc</artifactId>
+            <!-- The dependency is available only for stable releases, SNAPSHOT dependency need build by yourself. -->
+            <version>${flink.cdc.version}</version>
         </dependency>
 
     </dependencies>
