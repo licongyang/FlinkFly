@@ -1,9 +1,12 @@
 package org.flink.fly.statebackend
 
 import org.apache.flink.api.common.functions.RichFlatMapFunction
+import org.apache.flink.api.common.restartstrategy.RestartStrategies
+import org.apache.flink.api.common.restartstrategy.RestartStrategies.RestartStrategyConfiguration
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flink.configuration.Configuration
-import org.apache.flink.streaming.api.TimeCharacteristic
+import org.apache.flink.streaming.api.environment.CheckpointConfig.ExternalizedCheckpointCleanup
+import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
 import org.apache.flink.streaming.api.functions.{KeyedProcessFunction, ProcessFunction}
 import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor
 import org.apache.flink.streaming.api.scala._
@@ -20,7 +23,32 @@ object MyStateCode {
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime)
 
     // 开启checkpoint,每分钟一次
-    //    env.enableCheckpointing(60000)
+
+    /**
+     *
+     *     def enableCheckpointing(interval : Long,
+     *                       mode: CheckpointingMode) : StreamExecutionEnvironment = {
+     */
+    env.enableCheckpointing(60000)
+    env.getCheckpointConfig.setCheckpointInterval(60000)
+    // 默认 状态一致性为exact_once
+    env.getCheckpointConfig.setCheckpointingMode(CheckpointingMode.EXACTLY_ONCE)
+    // 保存状态后端（io），超过这个事件，这个checkpoint就丢弃 ；单位毫秒
+    env.getCheckpointConfig.setCheckpointTimeout(100000)
+    // checkpoint报错是否把job fail; 默认为true
+    env.getCheckpointConfig.setFailOnCheckpointingErrors(false)
+    // 同时进行几个checkpoint，间隔比较小，一个还没完，另一个又来；性能可能受影响
+    env.getCheckpointConfig.setMaxConcurrentCheckpoints(1)
+    // 两次checkpoint的最小事件间隔；跟上面冲突，只能一个生效
+    env.getCheckpointConfig.setMinPauseBetweenCheckpoints(100)
+    // 开启checkpoint外部持久化； job fail, 外部checkpoint会被清理；即使job失败，外部checkpoint不会被清理，需要手工清理
+    // job手工取消的，不要存 ExternalizedCheckpointCleanup.DELETE_ON_CANCELLATION
+    // ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION 需要存
+    env.getCheckpointConfig.enableExternalizedCheckpoints(ExternalizedCheckpointCleanup.RETAIN_ON_CANCELLATION)
+    // 重启策略 1.yaml文件参数
+    // 故障失败之后，尝试重启三次，两次重启间隔500ms
+//    env.setRestartStrategy(RestartStrategies.fixedDelayRestart(3, 500))
+//    env.setRestartStrategy(RestartStrategies.failureRateRestart(3, org.apache.flink.api.common.time.Time.seconds(300), org.apache.flink.api.common.time.Time.seconds(10)))
     // 配置statebackend，保存checkpoint
     //    env.setStateBackend(new MemoryStateBackend())
     //    env.setStateBackend(new FsStateBackend("hdfs://"))
